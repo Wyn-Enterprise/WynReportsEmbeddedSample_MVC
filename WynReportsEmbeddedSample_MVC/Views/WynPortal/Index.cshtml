@@ -1,0 +1,66 @@
+﻿@model WynUser
+@{
+    WynUser user = ViewBag.WynParams;
+    var gc = "@grapecity";
+}
+
+<script>
+    var portalUrl = "@user.WynUrl";
+    var username = "@user.Username";
+    var token = "@WynUser.AccessToken";
+    var wynVersion = "@user.Version";
+</script>
+
+<link rel="stylesheet" href="@Url.Content("https://cdn.jsdelivr.net/npm/@mdi/font@5.9.55/css/materialdesignicons.min.css")" />
+
+<!--Bootstrap-->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+<!--HighlightJS-->
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/default.min.css">
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+<script src="./node_modules/@gc/wyn-integration/build/WynIntegration.js"></script>
+
+<script src="~/js/site.js"></script>
+<div id="app-root" class="app">
+    <!-- appSidebar -->
+    <div class="app-sidebar">
+        <div class="app-sidebar-header">
+            <div class="app-sidebar-header-group">
+                <div id="app-portal-url"></div>
+            </div>
+            <div class="app-sidebar-header-group app-user-info">
+                <div>
+                    <div id="app-username"></div>
+                    <div id="app-org"></div>
+                </div>                
+            </div>
+            <div class="app-sidebar-header-group">
+                <button id="app-create-rdl-report" class="btnApp app-sidebar-btn app-create-report-btn" type="button">Create Blank RDL Report</button>
+                <button id="app-create-page-report" class="btnApp app-sidebar-btn app-create-report-btn" type="button">Create Blank Page Report</button>
+                <button id="app-open-report-designer" class="btnApp app-sidebar-btn app-create-report-btn" type="button">Open selected report in Designer</button>
+            </div>
+        </div>
+        <div class="app-sidebar-content">
+            <ul multiple="multiple" id="wyn-report-list" class="wyn-report-list"></ul>
+        </div>
+    </div>
+    <!-- designer -->
+    <div id="app-designer-instructions" class="app-instructions not-displayed">
+        <p>Getting started:</p>
+        <ol class="app-instructions-list">
+            <li class="app-instructions-item">
+                Create a new report - click "Create Blank RDL Report" or "Create Blank Page Report" button to create a new blank RDL or Page report respectively.
+            </li>
+            <li class="app-instructions-item">
+                Open an existing report in the viewer - click the needed report in the list.
+            </li>
+            <li class="app-instructions-item">
+                Open an existing report in the designer - click the needed report in the list and then click "Open selected report in Designer".
+            </li>
+        </ol>
+    </div>
+    <div id="wyn-root"></div>
+</div>
