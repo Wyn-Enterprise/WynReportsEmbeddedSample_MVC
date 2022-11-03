@@ -35,7 +35,7 @@
                 <div>
                     <div id="app-username"></div>
                     <div id="app-org"></div>
-                </div>                
+                </div>
             </div>
             <div class="app-sidebar-header-group">
                 <button id="app-create-rdl-report" class="btnApp app-sidebar-btn app-create-report-btn" type="button">Create Blank RDL Report</button>
@@ -45,6 +45,17 @@
         </div>
         <div class="app-sidebar-content">
             <ul multiple="multiple" id="wyn-report-list" class="wyn-report-list"></ul>
+        </div>
+    </div>
+    <div id="parametersPanel" class="hide">
+        <div class="panelHeader">
+            <div class="backBtn" onClick="toggleVisible()"></div>
+            <span id="docTitle"></span>
+        </div>
+        <div id="paramEditors">
+        </div>
+        <div class="toolbox">
+            <Button id="btnRunReport" key="preview" title="Preview document" class="btnRun">Run</Button>
         </div>
     </div>
     <!-- designer -->

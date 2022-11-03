@@ -66,6 +66,35 @@ async function getReferenceToken(url, user, password) {
     });
 }
 
+async function getAvailableValues(url, token, reportId, values, requestNames) {
+
+    const endpoint = concatUrls(url, '/api/reporting/reports/' + reportId + '/values2?token=' + token);
+    const request = requestNames.reduce((acc, name) => ({ ...acc, [name]: null }), {});
+    const body = { values, request };
+
+    const resolveResponse = async (response) => {
+        const jsonResponse = await response.json();
+        if (jsonResponse.error) return null;
+        console.log(jsonResponse);
+        return jsonResponse;
+    }
+
+    return await fetch(endpoint, {
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        method: 'POST',
+        body: JSON.stringify(body),
+        redirect: 'follow'
+    }).then(async response => {
+        let res = await resolveResponse(response);
+        return res;
+    }).catch(error => {
+        alert(error);
+        return null;
+    });
+}
+
 async function getReportList(portalUrl, referenceToken) {
     const url = concatUrls(portalUrl, 'api/graphql')
     const init = {
@@ -86,6 +115,10 @@ async function getReportList(portalUrl, referenceToken) {
     let list = documents.map(x => ({ name: x.title, id: x.id }))
     list.sort((x, y) => x.name < y.name ? -1 : 1)
     return list
+}
+
+function toggleVisible() {
+    document.getElementById('parametersPanel').className = "hide";
 }
 
 const createAppSidebar = (portalUrl, username, referenceToken) => {
@@ -186,7 +219,8 @@ const createViewer = async (portalUrl, referenceToken, report, params) => {
         baseUrl: portalUrl,
         reportId: report.id,
         lng: 'en',
-        token: referenceToken
+        token: referenceToken,
+        reportParameters: params
         // for v5.0, v5.1 ignore
         //version: '5.0.21782.0',
     }, '#wyn-root').then(ins => {
@@ -236,8 +270,60 @@ function init() {
         appSidebar.onOpenReport = async (report) => {
             rpt = report;
             document.getElementById('app-designer-instructions').classList.add('not-displayed');
-            getReportInfo(portalUrl, referenceToken, report.id).then((reportInfo) => {
-                createViewer(portalUrl, referenceToken, report);
+            getReportInfo(portalUrl, referenceToken, report.id).then(async (reportInfo) => {
+                const parameters = reportInfo && reportInfo.parameters.reduce((params, p) => ({ ...params, [p.name]: p.defaultValue.values && p.defaultValue.values[0] }), {});
+                if (reportInfo.parameters.length > 0) {
+                    document.getElementById('parametersPanel').className = "show";
+                    document.getElementById('docTitle').innerHTML = report.name;
+                    document.getElementById("paramEditors").innerHTML = "";
+                    document.getElementById('btnRunReport').onclick = null;
+                    reportInfo.parameters.map(async (param, i) => {
+                        const defaultValue = parameters ? parameters[param.name] : param.defaultValue && param.defaultValue.values && param.defaultValue.values.length > 0 ? param.defaultValue.values : [];
+                        const emptyValues = {
+                        };
+                        const parameterNames = [param.name];//.map(x => x.name);
+                        const availableValues = await getAvailableValues(portalUrl, referenceToken, report.id, emptyValues, parameterNames)
+
+                        var paramContainer = document.createElement('div');
+                        paramContainer.className = "input-group";
+                        var paramName = document.createElement("label");
+                        paramName.innerHTML = param.prompt;
+                        var paramValueInput;
+                        var keys = Object.keys(availableValues);
+                        if (keys?.length > 0 && availableValues[keys[0]]["validValues"].length > 0) {
+                            paramValueInput = document.createElement('select');
+                            paramValueInput.id = param.name + "Input";
+                            paramValueInput.className = "paramInput";
+                            availableValues[Object.keys(availableValues)[0]]["validValues"].map((val, idx) => {
+                                var option = document.createElement("option");
+                                option.value = val.value;
+                                option.text = val.label;
+                                paramValueInput.appendChild(option);
+                            });
+                        }
+                        else {
+                            paramValueInput = document.createElement('input');
+                            paramValueInput.id = param.name + "Input";
+                            paramValueInput.className = "paramInput";
+                            paramValueInput.value = Array.isArray(defaultValue) ? defaultValue.join() : defaultValue || "";
+                        }
+                        paramContainer.appendChild(paramName);
+                        paramContainer.appendChild(paramValueInput);
+                        document.getElementById("paramEditors").appendChild(paramContainer);
+
+                    });
+                    document.getElementById('btnRunReport').onclick = () => {
+                        var params = [];
+                        reportInfo.parameters.map((param, idx) => {
+                            let paramName = String(param.name).replace(/'/g, '&quot;');
+                            let paramValue = [String(document.getElementById(paramName + 'Input').value).replace(/'/g, '&quot;')];
+                            params.push({ name: paramName, values: paramValue });
+                        });
+                        createViewer(portalUrl, referenceToken, report, params);
+                    };
+                }
+                else
+                    createViewer(portalUrl, referenceToken, report);
             });
         };
         appSidebar.onReportInDesigner = async (report) => {
